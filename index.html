@@ -479,6 +479,7 @@
             <input type="text" class="topic-input" id="topicInput" placeholder="Topic name...">
             <button class="btn btn-primary" onclick="saveTopic()">Save</button>
             <button class="btn btn-success" onclick="copyTable()">📋 Copy (ID + Reply)</button>
+            <button class="btn btn-primary" onclick="generateQRSync()" style="background:#673ab7;">📱 Share QR</button>
             <button class="btn btn-secondary" onclick="clearReplies()">Clear Replies</button>
             <button class="btn btn-secondary" onclick="newTopic()">+ New</button>
             <button class="settings-btn" onclick="openConfigModal()" title="Config Status">⚙️</button>
@@ -505,14 +506,34 @@
             </div>
             <textarea class="config-area" id="configInput"
                 placeholder='Paste your config json here: { "pubData": [...], "apkpureApps": [...] }'></textarea>
-            <div style="display:flex;gap:10px;justify-content:flex-end">
+            <div style="display:flex;gap:10px;justify:flex-end">
                 <button class="btn btn-secondary" onclick="closeConfigModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="saveConfig()">Import & Save Config</button>
             </div>
         </div>
     </div>
 
+    <!-- QR Share Modal -->
+    <div class="modal" id="qrModal">
+        <div class="modal-content" style="width: 400px; text-align: center;">
+            <div class="modal-title">Scan to Sync</div>
+            <div style="margin-bottom: 16px; color: #666; font-size: 13px;">
+                Scan with WeChat / Camera to open on phone.<br>
+                <span style="color: #f44336; font-size: 12px;">(Ensure Config is imported on phone first!)</span>
+            </div>
+            <div id="qrcode" style="margin: 0 auto 20px auto; display: inline-block;"></div>
+            <div style="display:flex;gap:10px;justify-content:center">
+                <button class="btn btn-secondary"
+                    onclick="document.getElementById('qrModal').classList.remove('show')">Close</button>
+            </div>
+        </div>
+    </div>
+
     <div class="copy-toast" id="toast">Copied!</div>
+
+    <!-- Libraries for QR Sync -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <script>
         // Data containers - Empty by default for security
@@ -532,7 +553,7 @@
         }
 
         function init() {
-            // Load Config
+            // 1. Load Config
             const configStr = localStorage.getItem('replyCollectorV3Config');
             if (configStr) {
                 try {
@@ -544,11 +565,47 @@
                 }
             }
 
-            // If no data, show modal
+            // 2. Load Data from URL (Mobile Sync)
+            const urlParams = new URLSearchParams(window.location.search);
+            const syncData = urlParams.get('data');
+
+            if (syncData) {
+                try {
+                    const decom = LZString.decompressFromEncodedURIComponent(syncData);
+                    if (decom) {
+                        const parsed = JSON.parse(decom);
+                        // Apply synced data
+                        replies = parsed.r || {};
+                        selectedApps = parsed.s || {};
+                        apkpureRows = parsed.ar || [0];
+                        apkpureReplies = parsed.ap || {};
+                        // Clear URL to avoid messy address bar
+                        window.history.replaceState({}, document.title, window.location.pathname);
+
+                        // If config is missing on mobile but present in sync, we *could* try to sync config too, 
+                        // but allowing config sync via URL is risky size-wise. 
+                        // Assuming user has imported config on phone once.
+
+                        showToast('Data Synced from PC! 🚀');
+                    }
+                } catch (e) {
+                    console.error('Sync error', e);
+                    showToast('Sync Failed');
+                }
+            }
+
+            // If still no data, show modal
             if (pubData.length === 0) {
                 openConfigModal();
             } else {
-                initData();
+                // If we didn't sync from URL, init normally
+                if (!syncData) initData();
+                else {
+                    // Render directly with synced data
+                    renderTable();
+                    renderTopicList();
+                    updateStats();
+                }
             }
         }
 
@@ -584,8 +641,8 @@
         }
 
         function saveConfig() {
-            const val = document.getElementById('configInput').value.trim();
-            if (!val) return;
+            const val = document.getElementById('configInput').value;
+            if (!val.trim()) return;
             try {
                 const config = JSON.parse(val);
                 if (!config.pubData || !Array.isArray(config.pubData)) throw new Error('Invalid Config Structure');
