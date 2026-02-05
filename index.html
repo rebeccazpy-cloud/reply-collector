@@ -275,6 +275,127 @@
             background: #c8e6c9;
         }
 
+        /* Mobile Responsive Styles - Card Layout */
+        @media (max-width: 600px) {
+            .container {
+                padding: 0;
+                background: transparent;
+                box-shadow: none;
+            }
+
+            /* Make table block-like */
+            table,
+            tbody {
+                display: block;
+                width: 100%;
+            }
+
+            thead {
+                display: none;
+            }
+
+            /* Hide headers on mobile */
+
+            tr {
+                display: grid;
+                grid-template-columns: 1fr auto;
+                /* App takes remaining space, ID takes necessary space */
+                gap: 8px 12px;
+                background: white;
+                margin-bottom: 10px;
+                padding: 12px;
+                border-radius: 8px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                border: 1px solid #e0e0e0;
+            }
+
+            /* Preserve dynamic row colors */
+            tr.dynamic-row {
+                background: #fff8e1;
+                border-color: #ffe0b2;
+            }
+
+            tr.has-reply,
+            tr.dynamic-row.has-reply {
+                background: #e8f5e9;
+                border-color: #a5d6a7;
+            }
+
+            /* Reset standard table cell styles */
+            td {
+                padding: 0;
+                border: none;
+                display: block;
+            }
+
+            /* 1. Pub Name (Header of the card) */
+            td:nth-child(1) {
+                grid-column: 1 / -1;
+                font-weight: 700;
+                font-size: 15px;
+                color: #0066cc;
+                border-bottom: 1px dashed #eee;
+                padding-bottom: 8px;
+                margin-bottom: 4px;
+            }
+
+            /* 2. App Selection/Name */
+            td:nth-child(2) {
+                grid-column: 1 / 2;
+                align-self: center;
+                width: 100%;
+            }
+
+            /* 3. ID Display */
+            td:nth-child(3) {
+                grid-column: 2 / 3;
+                text-align: right;
+                font-family: monospace;
+                color: #666;
+                font-size: 14px;
+                align-self: center;
+                background: #f5f5f5;
+                padding: 2px 6px;
+                border-radius: 4px;
+            }
+
+            /* 4. Reply Box */
+            td:nth-child(4) {
+                grid-column: 1 / -1;
+                margin-top: 4px;
+                width: 100%;
+            }
+
+            /* Optimize inputs for touch */
+            .reply-input {
+                width: 100%;
+                min-height: 50px;
+                font-size: 16px;
+                /* Prevent IOS zoom */
+            }
+
+            .app-select {
+                max-width: 100%;
+            }
+
+            .header {
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                background: white;
+                padding: 10px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            .stats {
+                background: #e3f2fd;
+                color: #0d47a1;
+                font-weight: 600;
+                text-align: center;
+                border-top: 1px solid #bbdefb;
+            }
+        }
+
         /* Modal Styles */
         .modal {
             display: none;
