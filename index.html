@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reply Collector</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            min-height: 400px;
+        }
+
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .topic-input {
+            flex: 1;
+            min-width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .topic-input:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0052a3;
+        }
+
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #43a047;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .stats {
+            font-size: 13px;
+            color: #666;
+            padding: 10px 20px;
+            background: #fafafa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+
+        th {
+            background: #f9f9f9;
+            font-weight: 600;
+            color: #333;
+            position: sticky;
+            top: 0;
+        }
+
+        .col-pub {
+            width: 160px;
+        }
+
+        .col-app {
+            width: 180px;
+        }
+
+        .col-id {
+            width: 160px;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        tr.has-reply {
+            background: #e8f5e9;
+        }
+
+        tr.has-reply:hover {
+            background: #c8e6c9;
+        }
+
+        .app-select {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+        }
+
+        .reply-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            resize: none;
+            min-height: 36px;
+        }
+
+        .reply-input:focus {
+            outline: none;
+            border-color: #4caf50;
+            background: #fff;
+        }
+
+        .reply-input.filled {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .pub-id-display {
+            font-family: monospace;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .copy-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            display: none;
+            z-index: 200;
+        }
+
+        .copy-toast.show {
+            display: block;
+        }
+
+        .topic-list {
+            padding: 10px 20px;
+            background: #fafafa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .topic-list.hidden {
+            display: none;
+        }
+
+        .topic-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .topic-chip {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .topic-chip:hover {
+            background: #bbdefb;
+        }
+
+        .topic-chip.active {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+
+        .topic-chip .del {
+            margin-left: 6px;
+            color: #999;
+        }
+
+        .topic-chip .del:hover {
+            color: #f44336;
+        }
+
+        .add-row-btn {
+            background: #fff3e0;
+            border: 1px dashed #ff9800;
+            color: #e65100;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .add-row-btn:hover {
+            background: #ffe0b2;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 2px 6px;
+        }
+
+        .remove-btn:hover {
+            color: #f44336;
+        }
+
+        .dynamic-row {
+            background: #fff8e1;
+        }
+
+        .dynamic-row.has-reply {
+            background: #c8e6c9;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            max-width: 90%;
+            width: 600px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .config-area {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            resize: none;
+            min-height: 200px;
+            margin-bottom: 16px;
+        }
+
+        .config-help {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 16px;
+            line-height: 1.5;
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 4px;
+        }
+
+        .settings-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            font-size: 20px;
+        }
+
+        .settings-btn:hover {
+            opacity: 0.7;
+        }
+
+        .empty-placeholder {
+            padding: 40px;
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <input type="text" class="topic-input" id="topicInput" placeholder="Topic name...">
+            <button class="btn btn-primary" onclick="saveTopic()">Save</button>
+            <button class="btn btn-success" onclick="copyTable()">📋 Copy (ID + Reply)</button>
+            <button class="btn btn-secondary" onclick="clearReplies()">Clear Replies</button>
+            <button class="btn btn-secondary" onclick="newTopic()">+ New</button>
+            <button class="settings-btn" onclick="openConfigModal()" title="Config Status">⚙️</button>
+        </div>
+        <div class="topic-list" id="topicList">
+            <small style="color:#666">Saved Topics:</small>
+            <div class="topic-chips" id="topicChips"></div>
+        </div>
+        <div class="stats">
+            <span id="stats">Replied: 0 / 0</span>
+        </div>
+        <div id="tableContainer">
+            <!-- Table will be injected here -->
+        </div>
+    </div>
+
+    <!-- Config Modal -->
+    <div class="modal" id="configModal">
+        <div class="modal-content">
+            <div class="modal-title">App Configuration</div>
+            <div class="config-help">
+                To keep your data secure, Pub IDs are not stored in the application code.<br>
+                Please paste your configuration JSON below to initialize the app.
+            </div>
+            <textarea class="config-area" id="configInput"
+                placeholder='Paste your config json here: { "pubData": [...], "apkpureApps": [...] }'></textarea>
+            <div style="display:flex;gap:10px;justify-content:flex-end">
+                <button class="btn btn-secondary" onclick="closeConfigModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveConfig()">Import & Save Config</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="copy-toast" id="toast">Copied!</div>
+
+    <script>
+        // Data containers - Empty by default for security
+        let pubData = [];
+        let apkpureApps = [];
+
+        // State
+        let replies = {};
+        let selectedApps = {};
+        let apkpureRows = [0];
+        let apkpureReplies = {};
+        let currentTopicId = null;
+        let allTopics = {};
+
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        function init() {
+            // Load Config
+            const configStr = localStorage.getItem('replyCollectorV3Config');
+            if (configStr) {
+                try {
+                    const config = JSON.parse(configStr);
+                    pubData = config.pubData || [];
+                    apkpureApps = config.apkpureApps || [];
+                } catch (e) {
+                    console.error('Invalid config', e);
+                }
+            }
+
+            // If no data, show modal
+            if (pubData.length === 0) {
+                openConfigModal();
+            } else {
+                initData();
+            }
+        }
+
+        function initData() {
+            const saved = localStorage.getItem('replyCollectorV3Topics');
+            if (saved) allTopics = JSON.parse(saved);
+
+            currentTopicId = localStorage.getItem('replyCollectorV3Current');
+            if (currentTopicId && allTopics[currentTopicId]) {
+                const t = allTopics[currentTopicId];
+                replies = t.replies || {};
+                selectedApps = t.selectedApps || {};
+                apkpureRows = t.apkpureRows || [0];
+                apkpureReplies = t.apkpureReplies || {};
+                document.getElementById('topicInput').value = t.name || '';
+            }
+
+            renderTable();
+            renderTopicList();
+            updateStats();
+        }
+
+        function openConfigModal() {
+            document.getElementById('configModal').classList.add('show');
+            const currentConfig = localStorage.getItem('replyCollectorV3Config');
+            if (currentConfig) {
+                document.getElementById('configInput').value = currentConfig;
+            }
+        }
+
+        function closeConfigModal() {
+            document.getElementById('configModal').classList.remove('show');
+        }
+
+        function saveConfig() {
+            const val = document.getElementById('configInput').value.trim();
+            if (!val) return;
+            try {
+                const config = JSON.parse(val);
+                if (!config.pubData || !Array.isArray(config.pubData)) throw new Error('Invalid Config Structure');
+
+                localStorage.setItem('replyCollectorV3Config', val);
+                pubData = config.pubData;
+                apkpureApps = config.apkpureApps || [];
+
+                closeConfigModal();
+                showToast('Config Imported!');
+                initData();
+            } catch (e) {
+                alert('Invalid JSON Config: ' + e.message);
+            }
+        }
+
+        function renderTable() {
+            const container = document.getElementById('tableContainer');
+            if (pubData.length === 0) {
+                container.innerHTML = '<div class="empty-placeholder">No Config Loaded. Click ⚙️ to set up.</div>';
+                return;
+            }
+
+            let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-pub">Pub</th>
+                        <th class="col-app">App</th>
+                        <th class="col-id">ID</th>
+                        <th class="col-reply">Reply</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">`;
+
+            // Helper to generate Apkpure rows
+            const getApkpureHtml = () => {
+                let str = '';
+                apkpureRows.forEach((appIdx, rowIdx) => {
+                    const app = apkpureApps[appIdx] || { display: '?' };
+                    const reply = apkpureReplies[rowIdx] || '';
+                    const hasReply = reply.trim() !== '';
+                    const isFirst = rowIdx === 0;
+
+                    // Available apps for dropdown
+                    const availableApps = apkpureApps.map((a, i) => {
+                        const isUsed = apkpureRows.includes(i) && apkpureRows.indexOf(i) !== rowIdx;
+                        return { ...a, idx: i, disabled: isUsed };
+                    });
+
+                    str += `<tr class="dynamic-row ${hasReply ? 'has-reply' : ''}">
+                        <td>Apkpure${isFirst ? '' : ''}</td>
+                        <td>
+                            <select class="app-select" onchange="changeApkpureApp(${rowIdx}, this.value)">
+                                ${availableApps.map(a => `<option value="${a.idx}" ${a.idx === appIdx ? 'selected' : ''} ${a.disabled ? 'disabled' : ''}>${a.app}</option>`).join('')}
+                            </select>
+                        </td>
+                        <td class="pub-id-display">${app.display}</td>
+                        <td style="display:flex;gap:4px;align-items:center;">
+                            <textarea class="reply-input ${hasReply ? 'filled' : ''}" style="flex:1"
+                                oninput="updateApkpureReply(${rowIdx}, this.value)"
+                                placeholder="Paste reply...">${reply}</textarea>
+                            ${!isFirst ? `<button class="remove-btn" onclick="removeApkpureRow(${rowIdx})">×</button>` : ''}
+                        </td>
+                    </tr>`;
+                });
+
+                if (apkpureRows.length < apkpureApps.length) {
+                    str += `<tr>
+                        <td colspan="4" style="text-align:center;padding:8px;">
+                            <button class="add-row-btn" onclick="addApkpureRow()">+ Add Apkpure app</button>
+                        </td>
+                    </tr>`;
+                }
+                return str;
+            };
+
+            // Regular pubs
+            pubData.forEach((pub, pubIndex) => {
+                const selectedIdx = selectedApps[pubIndex] || 0;
+                const currentApp = pub.apps[selectedIdx];
+                const reply = replies[pubIndex] || '';
+                const hasReply = reply.trim() !== '';
+
+                let appOptions = '';
+                if (pub.apps.length > 1) {
+                    appOptions = `<select class="app-select" onchange="changeApp(${pubIndex}, this.value)">
+                        ${pub.apps.map((a, i) => `<option value="${i}" ${i === selectedIdx ? 'selected' : ''}>${a.app}</option>`).join('')}
+                    </select>`;
+                } else {
+                    appOptions = pub.apps[0].app;
+                }
+
+                html += `<tr class="${hasReply ? 'has-reply' : ''}">
+                    <td>${pub.pub}</td>
+                    <td>${appOptions}</td>
+                    <td class="pub-id-display">${currentApp.display}</td>
+                    <td><textarea class="reply-input ${hasReply ? 'filled' : ''}" 
+                        oninput="updateReply(${pubIndex}, this.value)"
+                        placeholder="Paste reply...">${reply}</textarea></td>
+                </tr>`;
+
+                // Inject Apkpure rows after SHAREIT (index 2)
+                if (pubIndex === 2) {
+                    html += getApkpureHtml();
+                }
+            });
+
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+
+        function changeApp(pubIndex, appIndex) {
+            selectedApps[pubIndex] = parseInt(appIndex);
+            autoSave();
+            renderTable();
+        }
+
+        function updateReply(pubIndex, value) {
+            replies[pubIndex] = value;
+            autoSave();
+            updateStats();
+        }
+
+        function changeApkpureApp(rowIdx, appIdx) {
+            apkpureRows[rowIdx] = parseInt(appIdx);
+            autoSave();
+            renderTable();
+        }
+
+        function updateApkpureReply(rowIdx, value) {
+            apkpureReplies[rowIdx] = value;
+            autoSave();
+            updateStats();
+        }
+
+        function addApkpureRow() {
+            // Find first unused app
+            for (let i = 0; i < apkpureApps.length; i++) {
+                if (!apkpureRows.includes(i)) {
+                    apkpureRows.push(i);
+                    break;
+                }
+            }
+            autoSave();
+            renderTable();
+            updateStats();
+        }
+
+        function removeApkpureRow(rowIdx) {
+            apkpureRows.splice(rowIdx, 1);
+            // Reindex replies
+            const newReplies = {};
+            Object.keys(apkpureReplies).forEach(k => {
+                const idx = parseInt(k);
+                if (idx < rowIdx) newReplies[idx] = apkpureReplies[idx];
+                else if (idx > rowIdx) newReplies[idx - 1] = apkpureReplies[idx];
+            });
+            apkpureReplies = newReplies;
+            autoSave();
+            renderTable();
+            updateStats();
+        }
+
+        function updateStats() {
+            if (pubData.length === 0) {
+                document.getElementById('stats').textContent = 'Replied: 0 / 0';
+                return;
+            }
+            const totalRegular = pubData.length;
+            const totalApkpure = apkpureRows.length;
+            const repliedRegular = Object.values(replies).filter(r => r && r.trim()).length;
+            const repliedApkpure = Object.values(apkpureReplies).filter(r => r && r.trim()).length;
+            document.getElementById('stats').textContent = `Replied: ${repliedRegular + repliedApkpure} / ${totalRegular + totalApkpure}`;
+        }
+
+        function copyTable() {
+            const lines = [];
+
+            // Regular pubs
+            pubData.forEach((pub, i) => {
+                const reply = replies[i];
+                if (reply && reply.trim()) {
+                    const selectedIdx = selectedApps[i] || 0;
+                    const display = pub.apps[selectedIdx].display;
+                    lines.push(`${display}\t${reply.trim()}`);
+                }
+            });
+
+            // Apkpure rows
+            apkpureRows.forEach((appIdx, rowIdx) => {
+                const reply = apkpureReplies[rowIdx];
+                if (reply && reply.trim()) {
+                    const display = apkpureApps[appIdx].display;
+                    lines.push(`${display}\t${reply.trim()}`);
+                }
+            });
+
+            if (lines.length === 0) {
+                showToast('No replies to copy');
+                return;
+            }
+
+            navigator.clipboard.writeText(lines.join('\n')).then(() => {
+                showToast(`Copied ${lines.length} rows!`);
+            });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function clearReplies() {
+            if (!confirm('Clear all replies?')) return;
+            replies = {};
+            apkpureReplies = {};
+            apkpureRows = [0];
+            autoSave();
+            renderTable();
+            updateStats();
+        }
+
+        function autoSave() {
+            const name = document.getElementById('topicInput').value.trim();
+            if (!currentTopicId) currentTopicId = generateId();
+            if (name) {
+                allTopics[currentTopicId] = {
+                    name,
+                    replies,
+                    selectedApps,
+                    apkpureRows,
+                    apkpureReplies,
+                    updatedAt: Date.now()
+                };
+                localStorage.setItem('replyCollectorV3Topics', JSON.stringify(allTopics));
+                localStorage.setItem('replyCollectorV3Current', currentTopicId);
+                renderTopicList();
+            }
+        }
+
+        function saveTopic() {
+            const name = document.getElementById('topicInput').value.trim();
+            if (!name) { alert('Enter topic name'); return; }
+            autoSave();
+            showToast('Saved!');
+        }
+
+        function newTopic() {
+            autoSave();
+            currentTopicId = generateId();
+            replies = {};
+            selectedApps = {};
+            apkpureRows = [0];
+            apkpureReplies = {};
+            document.getElementById('topicInput').value = '';
+            localStorage.setItem('replyCollectorV3Current', currentTopicId);
+            renderTable();
+            renderTopicList();
+            updateStats();
+        }
+
+        function loadTopic(id) {
+            if (id === currentTopicId) return;
+            autoSave();
+            currentTopicId = id;
+            const t = allTopics[id];
+            replies = t.replies || {};
+            selectedApps = t.selectedApps || {};
+            apkpureRows = t.apkpureRows || [0];
+            apkpureReplies = t.apkpureReplies || {};
+            document.getElementById('topicInput').value = t.name || '';
+            localStorage.setItem('replyCollectorV3Current', currentTopicId);
+            renderTable();
+            renderTopicList();
+            updateStats();
+        }
+
+        function deleteTopic(id, e) {
+            e.stopPropagation();
+            if (!confirm('Delete topic?')) return;
+            delete allTopics[id];
+            localStorage.setItem('replyCollectorV3Topics', JSON.stringify(allTopics));
+            if (currentTopicId === id) {
+                currentTopicId = null;
+                replies = {};
+                selectedApps = {};
+                apkpureRows = [0];
+                apkpureReplies = {};
+                document.getElementById('topicInput').value = '';
+                renderTable();
+                updateStats();
+            }
+            renderTopicList();
+        }
+
+        function renderTopicList() {
+            const container = document.getElementById('topicChips');
+            const list = document.getElementById('topicList');
+            const ids = Object.keys(allTopics);
+
+            if (ids.length === 0) { list.classList.add('hidden'); return; }
+
+            list.classList.remove('hidden');
+            ids.sort((a, b) => (allTopics[b].updatedAt || 0) - (allTopics[a].updatedAt || 0));
+
+            container.innerHTML = ids.map(id => {
+                const t = allTopics[id];
+                const countR = Object.values(t.replies || {}).filter(r => r && r.trim()).length;
+                const countA = Object.values(t.apkpureReplies || {}).filter(r => r && r.trim()).length;
+                const active = id === currentTopicId;
+                return `<div class="topic-chip ${active ? 'active' : ''}" onclick="loadTopic('${id}')">
+                    ${t.name} (${countR + countA})<span class="del" onclick="deleteTopic('${id}', event)">×</span>
+                </div>`;
+            }).join('');
+        }
+
+        document.getElementById('topicInput').addEventListener('input', autoSave);
+        init();
+    </script>
+</body>
+
+</html>
