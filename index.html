@@ -659,6 +659,41 @@
             }
         }
 
+        function generateQRSync() {
+            // Compress state
+            const state = {
+                r: replies, // replies
+                s: selectedApps, // selected apps
+                ar: apkpureRows, // apkpure rows
+                ap: apkpureReplies // apkpure replies
+            };
+
+            // Validate if empty
+            if (Object.keys(replies).every(k => !replies[k]) && Object.keys(apkpureReplies).every(k => !apkpureReplies[k])) {
+                showToast('Is empty! Nothing to sync.');
+                return;
+            }
+
+            const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(state));
+            const url = window.location.origin + window.location.pathname + '?data=' + compressed;
+
+            // Show QR
+            const modal = document.getElementById('qrModal');
+            const container = document.getElementById('qrcode');
+            container.innerHTML = ''; // Clear prev
+
+            new QRCode(container, {
+                text: url,
+                width: 200,
+                height: 200,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.L
+            });
+
+            modal.classList.add('show');
+        }
+
         function renderTable() {
             const container = document.getElementById('tableContainer');
             if (pubData.length === 0) {
