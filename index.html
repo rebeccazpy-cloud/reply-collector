@@ -771,7 +771,7 @@
                 if (reply && reply.trim()) {
                     const selectedIdx = selectedApps[i] || 0;
                     const display = pub.apps[selectedIdx].display;
-                    lines.push(`${display}\t${reply.trim()}`);
+                    lines.push(`${display}    ${reply.trim()}`);
                 }
             });
 
@@ -780,7 +780,7 @@
                 const reply = apkpureReplies[rowIdx];
                 if (reply && reply.trim()) {
                     const display = apkpureApps[appIdx].display;
-                    lines.push(`${display}\t${reply.trim()}`);
+                    lines.push(`${display}    ${reply.trim()}`);
                 }
             });
 
