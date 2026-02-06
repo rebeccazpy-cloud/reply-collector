@@ -1,0 +1,57 @@
+name: Update AI Articles Daily
+
+on:
+  # 每天北京时间早上 9 点运行 (UTC 1:00)
+  schedule:
+    - cron: '0 1 * * *'
+  
+  # 也可以手动触发
+  workflow_dispatch:
+
+# 给 GitHub Actions 写入权限
+permissions:
+  contents: write
+
+jobs:
+  update-articles:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install feedparser requests
+      
+      - name: Fetch AI articles
+        run: |
+          python3 fetch_ai_articles.py
+      
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if git diff --quiet ai_articles.json; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Commit and push if changed
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "GitHub Actions Bot"
+          git add ai_articles.json
+          git commit -m "🤖 Auto-update AI articles - $(date +'%Y-%m-%d %H:%M:%S')"
+          git push
+      
+      - name: No changes
+        if: steps.check_changes.outputs.has_changes == 'false'
+        run: |
+          echo "✅ No new articles found. Data is up to date."
