@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top 20 AI-Related Articles from Hacker News Blogs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+            animation: fadeIn 0.8s;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
+
+        .articles {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .article-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .article-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s;
+        }
+
+        .article-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .article-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .article-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .article-number {
+            flex-shrink: 0;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .article-content {
+            flex: 1;
+        }
+
+        .article-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .article-title a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .article-title a:hover {
+            color: #667eea;
+        }
+
+        .article-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: #718096;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .article-summary {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .article-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .source-badge {
+            background: #f7fafc;
+            color: #4a5568;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .score-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .load-time {
+            text-align: center;
+            color: white;
+            margin-top: 2rem;
+            opacity: 0.8;
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .article-card {
+                padding: 1.5rem;
+            }
+
+            .article-number {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+
+            .article-title {
+                font-size: 1.1rem;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            padding: 3rem;
+            font-size: 1.2rem;
+        }
+
+        .ai-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Top 20 AI-Related Articles</h1>
+            <p class="subtitle">From Hacker News' Most Popular Blogs (2025 Edition)</p>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number">92</div>
+                    <div class="stat-label">RSS Feeds Scanned</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">63</div>
+                    <div class="stat-label">AI Articles Found</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">20</div>
+                    <div class="stat-label">Top AI Picks</div>
+                </div>
+            </div>
+        </header>
+        <div class="articles" id="articles-container">
+            <div class="loading">Loading AI articles...</div>
+        </div>
+        <p class="load-time">Last updated: <span id="update-time"></span></p>
+    </div>
+    <script>
+        // Load articles from JSON file
+        fetch('ai_articles.json')
+            .then(response => response.json())
+            .then(articles => {
+                const container = document.getElementById('articles-container');
+                container.innerHTML = ''; // Clear loading message
+
+                articles.forEach((article, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'article-card';
+
+                    // Clean up HTML entities in summary
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = article.summary;
+                    const cleanSummary = (tempDiv.textContent || tempDiv.innerText).substring(0, 250);
+
+                    card.innerHTML = `
+                        <div class="article-header">
+                            <div class="article-number">${index + 1}</div>
+                            <div class="article-content">
+                                <h2 class="article-title">
+                                    <a href="${article.link}" target="_blank" rel="noopener noreferrer">${article.title}</a>
+                                    <span class="ai-badge">AI</span>
+                                </h2>
+                                <div class="article-meta">
+                                    <div class="meta-item"><span>📅</span><span>${article.published}</span></div>
+                                    <div class="meta-item"><span>✍️</span><span>${article.author}</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="article-summary">${cleanSummary}...</p>
+                        <div class="article-footer">
+                            <span class="source-badge">${article.source}</span>
+                            <span class="score-badge"><span>🎯</span><span>Quality Score: ${article.quality_score}</span></span>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+
+                document.getElementById('update-time').textContent = new Date().toLocaleString('zh-CN');
+            })
+            .catch(error => {
+                console.error('Error loading articles:', error);
+                document.getElementById('articles-container').innerHTML =
+                    '<div class="loading">❌ Error loading articles. Please ensure ai_articles.json is in the same directory.</div>';
+            });
+    </script>
+</body>
+
+</html>
